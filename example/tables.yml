@@ -1,0 +1,3 @@
+tables:
+  - "catalog.schema.table_x"
+  - "catalog.schema.table_y"
