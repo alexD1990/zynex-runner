@@ -11,6 +11,7 @@ def run_tables(tables: list[str]) -> dict:
     run_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     table_results = []
+    modules_used: list[str] = []
 
     for table in tables:
         report = None
@@ -18,6 +19,11 @@ def run_tables(tables: list[str]) -> dict:
             report = check(source=table, render=False)
         except Exception as e:
             print(f"Error processing table '{table}': {type(e).__name__}: {e}", file=sys.stderr)
+
+        if report is not None:
+            for m in report.modules:
+                if m not in modules_used:
+                    modules_used.append(m)
 
         if report is None:
             table_results.append({
@@ -59,7 +65,7 @@ def run_tables(tables: list[str]) -> dict:
     return {
         "run_id": run_id,
         "run_timestamp": run_timestamp,
-        "modules": ["core_quality"],
+        "modules": modules_used,
         "tables": table_results,
     }
 
