@@ -1,7 +1,7 @@
 import json
+import sys
 import uuid
 from datetime import datetime, timezone
-from typing import Optional
 
 from zynex import check
 
@@ -16,8 +16,8 @@ def run_tables(tables: list[str]) -> dict:
         report = None
         try:
             report = check(source=table, render=False)
-        except ValueError:
-            pass
+        except Exception as e:
+            print(f"Error processing table '{table}': {type(e).__name__}: {e}", file=sys.stderr)
 
         if report is None:
             table_results.append({
