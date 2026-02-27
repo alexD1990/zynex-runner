@@ -12,6 +12,10 @@ def load_tables(path: str, ) -> tuple[list[dict], int | None]:
     if global_timeout is not None and not isinstance(global_timeout, (int, float)):
         raise ValueError("timeout_seconds must be a number")
 
+    fail_fast = data.get("fail_fast", False)
+    if not isinstance(fail_fast, bool):
+        raise ValueError("fail_fast must be a boolean")
+
     tables = data["tables"]
 
     if not isinstance(tables, list) or len(tables) == 0:
@@ -34,4 +38,4 @@ def load_tables(path: str, ) -> tuple[list[dict], int | None]:
         else:
             raise ValueError(f"Each table must be a string or mapping, got: {type(item)}")
 
-    return result
+    return result, fail_fast

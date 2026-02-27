@@ -8,7 +8,7 @@ import threading
 
 from zynex import check
 
-def run_tables(tables: list[dict]) -> dict:
+def run_tables(tables: list[dict], fail_fast: bool = False) -> dict:
     run_id = str(uuid.uuid4())
     run_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
@@ -87,7 +87,9 @@ def run_tables(tables: list[dict]) -> dict:
                 for r in report.results
             ],
         })
-
+        
+        if fail_fast and top_status == "error":
+            break
     try:
         zynex_version = version("zynex")
     except PackageNotFoundError:
