@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime, timezone
 from importlib.metadata import version, PackageNotFoundError
 import time
+import threading
 
 from zynex import check
 
@@ -17,13 +18,29 @@ def run_tables(tables: list[dict]) -> dict:
     for entry in tables:
         table = entry["name"]
         tags = entry["tags"]
+        timeout = entry.get("timeout_seconds")
         report = None
+        error: Exception | None = None
         t_start = time.monotonic()
-        try:
-            report = check(source=table, render=False)
-        except Exception as e:
-            print(f"Error processing table '{table}': {type(e).__name__}: {e}", file=sys.stderr)
+
+        def _run():
+            nonlocal report, error
+            try:
+                report = check(source=table, render=False)
+            except Exception as e:
+                error = e
+
+        thread = threading.Thread(target=_run)
+        thread.start()
+        thread.join(timeout=timeout)
         duration = round(time.monotonic() - t_start, 3)
+
+        if thread.is_alive():
+            print(f"Timeout processing table '{table}' after {timeout}s", file=sys.stderr)
+            report = None
+        elif error is not None:
+            print(f"Error processing table '{table}': {type(error).__name__}: {error}", file=sys.stderr)
+            report = None
 
         if report is not None:
             for m in report.modules:
