@@ -12,15 +12,21 @@ def main():
     args = parser.parse_args()
 
     try:
-        tables = load_tables(args.input)
+        tables, fail_fast = load_tables(args.input)
     except (ValueError, FileNotFoundError) as e:
         print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+        sys.exit(2)
+
+    payload = run_tables(tables, fail_fast=fail_fast)
 
     payload = run_tables(tables)
     write_output(payload, args.output)
     print(f"Done. Results written to {args.output}")
 
+    has_error_or_failed = any(
+        t["status"] in ("error", "failed") for t in payload["tables"]
+    )
+    sys.exit(1 if has_error_or_failed else 0)
 
 if __name__ == "__main__":
     main()
