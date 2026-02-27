@@ -7,14 +7,16 @@ import time
 
 from zynex import check
 
-def run_tables(tables: list[str]) -> dict:
+def run_tables(tables: list[dict]) -> dict:
     run_id = str(uuid.uuid4())
     run_timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
 
     table_results = []
     modules_used: list[str] = []
 
-    for table in tables:
+    for entry in tables:
+        table = entry["name"]
+        tags = entry["tags"]
         report = None
         t_start = time.monotonic()
         try:
@@ -33,6 +35,7 @@ def run_tables(tables: list[str]) -> dict:
                 "table": table,
                 "status": "failed",
                 "duration_seconds": duration,
+                "tags": tags,
                 "rows": None,
                 "columns": None,
                 "column_names": None,
@@ -53,6 +56,7 @@ def run_tables(tables: list[str]) -> dict:
             "table": table,
             "status": top_status,
             "duration_seconds": duration,
+            "tags": tags,
             "rows": report.rows,
             "columns": report.columns,
             "column_names": report.column_names,
