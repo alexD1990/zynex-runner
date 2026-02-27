@@ -3,6 +3,7 @@ import sys
 import uuid
 from datetime import datetime, timezone
 from importlib.metadata import version, PackageNotFoundError
+import time
 
 from zynex import check
 
@@ -15,10 +16,12 @@ def run_tables(tables: list[str]) -> dict:
 
     for table in tables:
         report = None
+        t_start = time.monotonic()
         try:
             report = check(source=table, render=False)
         except Exception as e:
             print(f"Error processing table '{table}': {type(e).__name__}: {e}", file=sys.stderr)
+        duration = round(time.monotonic() - t_start, 3)
 
         if report is not None:
             for m in report.modules:
@@ -29,6 +32,7 @@ def run_tables(tables: list[str]) -> dict:
             table_results.append({
                 "table": table,
                 "status": "failed",
+                "duration_seconds": duration,
                 "rows": None,
                 "columns": None,
                 "column_names": None,
@@ -48,6 +52,7 @@ def run_tables(tables: list[str]) -> dict:
         table_results.append({
             "table": table,
             "status": top_status,
+            "duration_seconds": duration,
             "rows": report.rows,
             "columns": report.columns,
             "column_names": report.column_names,
